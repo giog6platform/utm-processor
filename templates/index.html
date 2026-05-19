@@ -10,14 +10,14 @@
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
+
         .container {
             max-width: 900px;
             margin: 0 auto;
@@ -26,32 +26,32 @@
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             overflow: hidden;
         }
-        
+
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 40px 20px;
             text-align: center;
         }
-        
+
         .header h1 {
             font-size: 28px;
             margin-bottom: 8px;
         }
-        
+
         .header p {
             font-size: 14px;
             opacity: 0.95;
         }
-        
+
         .content {
             padding: 40px;
         }
-        
+
         .form-group {
             margin-bottom: 24px;
         }
-        
+
         label {
             display: block;
             font-weight: 600;
@@ -59,9 +59,9 @@
             color: #333;
             font-size: 14px;
         }
-        
+
         input[type="text"],
-        textarea {
+        select {
             width: 100%;
             padding: 12px;
             border: 1px solid #ddd;
@@ -69,43 +69,98 @@
             font-family: 'Monaco', 'Courier New', monospace;
             font-size: 13px;
             transition: border-color 0.2s;
+            background: white;
         }
-        
+
+        select {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23667eea' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 36px;
+        }
+
         input[type="text"]:focus,
-        textarea:focus {
+        select:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        
-        textarea {
-            min-height: 120px;
-            resize: vertical;
+
+        .file-upload {
+            position: relative;
+            display: block;
+            width: 100%;
+            padding: 24px;
+            border: 2px dashed #ddd;
+            border-radius: 6px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafbfc;
         }
-        
+
+        .file-upload:hover {
+            border-color: #667eea;
+            background: #f5f7ff;
+        }
+
+        .file-upload.has-file {
+            border-color: #10b981;
+            background: #f0fdf4;
+            border-style: solid;
+        }
+
+        .file-upload input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload-label {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .file-upload-label strong {
+            color: #667eea;
+        }
+
+        .file-upload.has-file .file-upload-label strong {
+            color: #10b981;
+        }
+
         .utm-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 16px;
             margin-top: 12px;
         }
-        
+
         @media (max-width: 600px) {
             .utm-grid {
                 grid-template-columns: 1fr;
             }
         }
-        
-        .utm-grid input {
-            width: 100%;
+
+        .utm-field label {
+            font-weight: 500;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 6px;
         }
-        
+
         .button-group {
             display: flex;
             gap: 12px;
             margin-top: 32px;
         }
-        
+
         button {
             flex: 1;
             padding: 12px 24px;
@@ -116,38 +171,38 @@
             cursor: pointer;
             transition: all 0.2s;
         }
-        
+
         .btn-process {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
         }
-        
+
         .btn-process:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
         }
-        
+
         .btn-process:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
         }
-        
+
         .btn-download {
             background: #10b981;
             color: white;
             display: none;
         }
-        
+
         .btn-download.show {
             display: flex;
         }
-        
+
         .btn-download:hover {
             background: #059669;
             transform: translateY(-2px);
         }
-        
+
         .result-section {
             display: none;
             margin-top: 32px;
@@ -156,18 +211,18 @@
             border-radius: 8px;
             border-left: 4px solid #667eea;
         }
-        
+
         .result-section.show {
             display: block;
         }
-        
+
         .result-title {
             font-weight: 600;
             font-size: 16px;
             color: #333;
             margin-bottom: 12px;
         }
-        
+
         .result-item {
             font-size: 13px;
             color: #666;
@@ -175,7 +230,7 @@
             display: flex;
             align-items: center;
         }
-        
+
         .result-item::before {
             content: "✓";
             display: inline-block;
@@ -183,7 +238,7 @@
             color: #10b981;
             font-weight: bold;
         }
-        
+
         .sample-url {
             background: white;
             padding: 12px;
@@ -195,7 +250,7 @@
             color: #333;
             border: 1px solid #e5e7eb;
         }
-        
+
         .error-message {
             background: #fee;
             color: #c33;
@@ -205,21 +260,21 @@
             font-size: 13px;
             display: none;
         }
-        
+
         .error-message.show {
             display: block;
         }
-        
+
         .loading {
             display: none;
             text-align: center;
             padding: 20px;
         }
-        
+
         .loading.show {
             display: block;
         }
-        
+
         .spinner {
             border: 3px solid #f3f4f6;
             border-top: 3px solid #667eea;
@@ -229,12 +284,12 @@
             animation: spin 1s linear infinite;
             margin: 0 auto;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
+
         .info-box {
             background: #eff6ff;
             border-left: 4px solid #3b82f6;
@@ -252,51 +307,81 @@
             <h1>📊 UTM Processor</h1>
             <p>Add UTM tracking parameters to campaign links</p>
         </div>
-        
+
         <div class="content">
             <div class="info-box">
-                <strong>How it works:</strong> Paste your HTML, enter the base URL and UTM parameters, and we'll replace all links with UTM-tracked versions. Download the processed file when ready.
+                <strong>How it works:</strong> Upload your HTML file, enter the base URL and pick your UTM parameters, and we'll replace all links with UTM-tracked versions. Download the processed file when ready.
             </div>
-            
+
             <form id="processorForm">
                 <div class="form-group">
-                    <label for="htmlContent">HTML Content *</label>
-                    <textarea id="htmlContent" placeholder="Paste your HTML here..." required></textarea>
+                    <label for="htmlFile">HTML File *</label>
+                    <label class="file-upload" id="fileUploadLabel" for="htmlFile">
+                        <input type="file" id="htmlFile" accept=".html,.htm,text/html" required>
+                        <div class="file-upload-label" id="fileUploadText">
+                            <strong>Click to upload</strong> or drop an .html file here
+                        </div>
+                    </label>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="baseUrl">Base URL *</label>
                     <input type="text" id="baseUrl" placeholder="https://example.com/offer" required>
                 </div>
-                
+
                 <div class="form-group">
                     <label>UTM Parameters</label>
                     <div class="utm-grid">
-                        <input type="text" id="utmSource" placeholder="UTM Source (e.g., The_Early_Bird)">
-                        <input type="text" id="utmCampaign" placeholder="UTM Campaign (e.g., ddr_may18)">
-                        <input type="text" id="utmMedium" placeholder="UTM Medium (e.g., email)">
-                        <input type="text" id="utmTerm" placeholder="UTM Term (e.g., may18)">
-                        <input type="text" id="utmContent" placeholder="UTM Content (e.g., featured)">
+                        <div class="utm-field">
+                            <label for="utmSource">UTM Source</label>
+                            <select id="utmSource">
+                                <option value="">Select from drop down</option>
+                            </select>
+                        </div>
+                        <div class="utm-field">
+                            <label for="utmCampaign">UTM Campaign</label>
+                            <select id="utmCampaign">
+                                <option value="">Select from drop down</option>
+                            </select>
+                        </div>
+                        <div class="utm-field">
+                            <label for="utmMedium">UTM Medium</label>
+                            <select id="utmMedium">
+                                <option value="">Select from drop down</option>
+                            </select>
+                        </div>
+                        <div class="utm-field">
+                            <label for="utmTerm">UTM Term</label>
+                            <select id="utmTerm">
+                                <option value="">Select from drop down</option>
+                            </select>
+                        </div>
+                        <div class="utm-field">
+                            <label for="utmContent">UTM Content</label>
+                            <select id="utmContent">
+                                <option value="">Select from drop down</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
-                
+
                 <div class="form-group">
                     <label for="filename">Output Filename</label>
                     <input type="text" id="filename" placeholder="campaign.html" value="campaign.html">
                 </div>
-                
+
                 <div class="button-group">
                     <button type="submit" class="btn-process">Process HTML</button>
                     <button type="button" class="btn-download" id="downloadBtn">⬇ Download File</button>
                 </div>
-                
+
                 <div class="error-message" id="errorMessage"></div>
                 <div class="loading" id="loading">
                     <div class="spinner"></div>
                     <p style="margin-top: 12px; font-size: 13px; color: #666;">Processing...</p>
                 </div>
             </form>
-            
+
             <div class="result-section" id="resultSection">
                 <div class="result-title">Processing Complete</div>
                 <div class="result-item">
@@ -309,38 +394,114 @@
             </div>
         </div>
     </div>
-    
+
     <script>
-        let processedHtml = null;
-        
-        document.getElementById('processorForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const htmlContent = document.getElementById('htmlContent').value.trim();
-            const baseUrl = document.getElementById('baseUrl').value.trim();
-            const utmSource = document.getElementById('utmSource').value.trim();
-            const utmCampaign = document.getElementById('utmCampaign').value.trim();
-            const utmMedium = document.getElementById('utmMedium').value.trim();
-            const utmTerm = document.getElementById('utmTerm').value.trim();
-            const utmContent = document.getElementById('utmContent').value.trim();
-            
-            // Validate
-            if (!htmlContent) {
-                showError('HTML content is required');
+        const UTM_OPTIONS = {
+            utmSource: [
+                "Bill_OReilly","Daily_Market_Alert","Harry_Dent","Wall_Street_Watch_Dogs","Newsflash",
+                "2024_Conservative","7steps_ebook","AAII","Adprecise","Alternative_Daily",
+                "American_Centrist","American_Conservatives","American_Daily_Digest","American_Downfall",
+                "American_Examiner_News","America_First_War_Room","America_First","American_Liberty_Report",
+                "American_Patriot_Club","Bearded_Patriots","American_Polls","Behind_the_Markets","bing",
+                "Breitbart_Business_Digest","Capital_Hill","Charisma","Conservative_Insider",
+                "Conservative_Review","Conservative_Zone","Cringe_Reality","Daily_Caller",
+                "Daily_Opinion_Polls","Dedollarize_News","DeSantis_Daily","Dividend_Stocks","Down_Range",
+                "Eagle_Publishing","Eagle_Publishings","Election_Wire_A","Election_Wire_B","FOTN",
+                "facebook_ads","Facts_Not_Memes","fgse_ebook","Firearm_Daily","For_The_Right_News",
+                "Freeman_News","Freedom_Eagle_Daily","Glen_Beck","Gold_Trading_Pros","google",
+                "HyperLedger_Banking_Surveillance","IMS_Publisher_Group","IMSGF","Informed_American",
+                "Instagram","Insider_Trades","INTERNAL","John_Solomon_Just_the_News","League_Of_Power",
+                "Liberty_Sons","Liberty_Planet","Life_and_Liberty","MAGA_Daily","maga_ebook",
+                "March_10_ISO_20022","Market_Munchies","Marketbeat","Mic_Drop_Politics","Michael_Savage",
+                "Money_Morning","National_Gun_Source","National_Insiders","National_Polling_Network",
+                "News_Around_the_Hill","Newsmax","Newsready","Opinionated_Conservatives","One_America_News",
+                "Patriot_Allegiance","Patriot_America_News","Patriot_Edition","Patriot_Political",
+                "Patriot_Rewards","Patriotic_Times","Patriotic_Viral_News","Patriots_Breakfastclub",
+                "Prepper_Lifestyle","Preserve_Freedom","Proud_Patriot_Times","Republican_Investor",
+                "Recession_Shield","Red_Alert_News","Red_Room_Brief","Red_State_Republicans",
+                "Rightside_Offers","Schaeffers","Senior_Resource","Sons_of_1776","Stateside_Scoop_A",
+                "Stateside_Scoop_B","Streetwise_Politics","Stocks_and_Income","The_Blaze","The_Breadwinner",
+                "The_Continental_Daily","The_Daily_Missive","The_Early_Bird","The_Epoch_Times","The_First",
+                "The_Gateway_Pundit","The_Horn","The_Liberty_Wire","The_Patriot_Reserve",
+                "The_Patriotic_Times","The_Patriotic_Voice","The_Political_Finance_Movement",
+                "The_Political_Movement","The_Political_Movement_of_Health","The_Punching_Bag_Post",
+                "The_Real_Patriotic_Voice","The_Silent_Majority_Daily","The_Street_Sheet",
+                "The_Tea_Party_Daily","The_Trump_Report","The_Western_Journal","The_Wolf_of_Washington",
+                "Townhall","Ultimate_Gold_Source","United_America_News","United_Christian",
+                "United_News_Week","United_Voice","US_Political_Daily","US_Politics_and_News",
+                "Watchdog_Report","We_The_People","Wealth_Insider_Alert","Zacks","Zero_Lethal"
+            ],
+            utmMedium: [
+                "banner","cpc","ebook","email","video","social","sms","website","article"
+            ],
+            utmCampaign: [
+                "digital_marketing_experts","gsi","joe_vincent","daily_ai"
+            ],
+            utmTerm: [
+                "May15"
+            ],
+            utmContent: [
+                "7steps_guide","buyer_blueprint_guide","digital_dollar_reset_guide",
+                "foreign_gold_silver_exposed","maga_investment_guide","no_fee_ira_guide",
+                "toxic_asset_guide","wealth_protection_guide"
+            ]
+        };
+
+        for (const [selectId, options] of Object.entries(UTM_OPTIONS)) {
+            const select = document.getElementById(selectId);
+            for (const opt of options) {
+                const o = document.createElement('option');
+                o.value = opt;
+                o.textContent = opt;
+                select.appendChild(o);
+            }
+        }
+
+        const fileInput = document.getElementById('htmlFile');
+        const fileUploadLabel = document.getElementById('fileUploadLabel');
+        const fileUploadText = document.getElementById('fileUploadText');
+        let uploadedHtml = '';
+
+        fileInput.addEventListener('change', async () => {
+            const file = fileInput.files[0];
+            if (!file) {
+                uploadedHtml = '';
+                fileUploadLabel.classList.remove('has-file');
+                fileUploadText.innerHTML = '<strong>Click to upload</strong> or drop an .html file here';
                 return;
             }
-            
+            uploadedHtml = await file.text();
+            fileUploadLabel.classList.add('has-file');
+            fileUploadText.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024).toFixed(1)} KB) — click to change`;
+        });
+
+        let processedHtml = null;
+
+        document.getElementById('processorForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const baseUrl = document.getElementById('baseUrl').value.trim();
+            const utmSource = document.getElementById('utmSource').value;
+            const utmCampaign = document.getElementById('utmCampaign').value;
+            const utmMedium = document.getElementById('utmMedium').value;
+            const utmTerm = document.getElementById('utmTerm').value;
+            const utmContent = document.getElementById('utmContent').value;
+
+            if (!uploadedHtml) {
+                showError('Please upload an HTML file');
+                return;
+            }
+
             if (!baseUrl) {
                 showError('Base URL is required');
                 return;
             }
-            
-            // Show loading
+
             document.getElementById('loading').classList.add('show');
             document.getElementById('errorMessage').classList.remove('show');
             document.getElementById('resultSection').classList.remove('show');
             document.getElementById('downloadBtn').classList.remove('show');
-            
+
             try {
                 const response = await fetch('/api/process', {
                     method: 'POST',
@@ -348,7 +509,7 @@
                         'Content-Type': 'application/json'
                     },
                     body: JSON.stringify({
-                        html: htmlContent,
+                        html: uploadedHtml,
                         base_url: baseUrl,
                         utm_source: utmSource,
                         utm_campaign: utmCampaign,
@@ -357,50 +518,48 @@
                         utm_content: utmContent
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (!response.ok) {
                     showError(data.error || 'Processing failed');
                     return;
                 }
-                
-                // Store processed HTML
+
                 processedHtml = data.processed_html;
-                
-                // Show results
-                document.getElementById('linksFoundText').textContent = 
+
+                document.getElementById('linksFoundText').textContent =
                     `${data.links_found} link${data.links_found !== 1 ? 's' : ''} found and updated`;
-                
+
                 const paramsList = [];
                 if (data.utm_params.utm_source) paramsList.push(`source=${data.utm_params.utm_source}`);
                 if (data.utm_params.utm_campaign) paramsList.push(`campaign=${data.utm_params.utm_campaign}`);
                 if (data.utm_params.utm_medium) paramsList.push(`medium=${data.utm_params.utm_medium}`);
                 if (data.utm_params.utm_term) paramsList.push(`term=${data.utm_params.utm_term}`);
                 if (data.utm_params.utm_content) paramsList.push(`content=${data.utm_params.utm_content}`);
-                
+
                 if (paramsList.length > 0) {
-                    document.getElementById('utmParamsText').textContent = 
+                    document.getElementById('utmParamsText').textContent =
                         `UTM parameters: ${paramsList.join(', ')}`;
                 }
-                
+
                 document.getElementById('sampleUrl').textContent = data.utm_url;
-                
+
                 document.getElementById('resultSection').classList.add('show');
                 document.getElementById('downloadBtn').classList.add('show');
-                
+
             } catch (error) {
                 showError(`Error: ${error.message}`);
             } finally {
                 document.getElementById('loading').classList.remove('show');
             }
         });
-        
+
         document.getElementById('downloadBtn').addEventListener('click', async () => {
             if (!processedHtml) return;
-            
+
             const filename = document.getElementById('filename').value || 'campaign.html';
-            
+
             try {
                 const response = await fetch('/api/download', {
                     method: 'POST',
@@ -412,12 +571,12 @@
                         filename: filename
                     })
                 });
-                
+
                 if (!response.ok) {
                     showError('Download failed');
                     return;
                 }
-                
+
                 const blob = await response.blob();
                 const url = window.URL.createObjectURL(blob);
                 const a = document.createElement('a');
@@ -427,12 +586,12 @@
                 a.click();
                 window.URL.revokeObjectURL(url);
                 document.body.removeChild(a);
-                
+
             } catch (error) {
                 showError(`Download error: ${error.message}`);
             }
         });
-        
+
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
