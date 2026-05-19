@@ -1,0 +1,9 @@
+{
+  "buildCommand": "pip install -r requirements.txt",
+  "public": false,
+  "functions": {
+    "app.py": {
+      "runtime": "python3.9"
+    }
+  }
+}
