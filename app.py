@@ -9,6 +9,8 @@ import re
 import os
 import json
 import threading
+import uuid
+import time
 from pathlib import Path
 from urllib.parse import urlencode
 from io import BytesIO
@@ -27,7 +29,12 @@ MAX_VALUE_LEN = 100
 DEFAULT_DATA_FILE = Path(__file__).resolve().parent / "data" / "options.json"
 DATA_FILE = Path(os.environ.get("UTM_OPTIONS_PATH", str(DEFAULT_DATA_FILE)))
 
+DEFAULT_HISTORY_FILE = Path(__file__).resolve().parent / "data" / "history.json"
+HISTORY_FILE = Path(os.environ.get("UTM_HISTORY_PATH", str(DEFAULT_HISTORY_FILE)))
+HISTORY_LIMIT = 500
+
 _options_lock = threading.Lock()
+_history_lock = threading.Lock()
 
 
 def _seed_options():
@@ -58,6 +65,44 @@ def save_options(data):
         with open(tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
         os.replace(tmp, DATA_FILE)
+
+
+def load_history():
+    with _history_lock:
+        if not HISTORY_FILE.exists():
+            return []
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return data if isinstance(data, list) else []
+        except (OSError, json.JSONDecodeError) as e:
+            logger.warning(f"Could not read history at {HISTORY_FILE}: {e}")
+            return []
+
+
+def _write_history(entries):
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = HISTORY_FILE.with_suffix(HISTORY_FILE.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(entries, f, indent=2)
+    os.replace(tmp, HISTORY_FILE)
+
+
+def append_history(entry):
+    with _history_lock:
+        try:
+            entries = []
+            if HISTORY_FILE.exists():
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        entries = loaded
+            entries.append(entry)
+            if len(entries) > HISTORY_LIMIT:
+                entries = entries[-HISTORY_LIMIT:]
+            _write_history(entries)
+        except OSError as e:
+            logger.warning(f"Could not write history to {HISTORY_FILE}: {e}")
 
 
 def build_utm_url(base_url, utm_params):
@@ -184,17 +229,70 @@ def process_html():
 
         logger.info(f"Processed HTML: {link_count} links found, UTM source: {utm_params.get('utm_source')}")
 
+        entry = {
+            'id': uuid.uuid4().hex,
+            'timestamp': int(time.time() * 1000),
+            'base_url': base_url,
+            'utm_params': utm_params,
+            'utm_url': utm_url,
+            'links_found': link_count,
+            'filename': (data.get('filename') or '').strip() or None,
+        }
+        append_history(entry)
+
         return jsonify({
             'success': True,
             'processed_html': processed_html,
             'links_found': link_count,
             'utm_url': utm_url,
-            'utm_params': utm_params
+            'utm_params': utm_params,
+            'history_entry': entry,
         })
 
     except Exception as e:
         logger.error(f"Error processing HTML: {str(e)}")
         return jsonify({'error': f'Processing error: {str(e)}'}), 500
+
+
+@app.route('/api/history', methods=['GET'])
+def get_history():
+    entries = load_history()
+    entries = sorted(entries, key=lambda e: e.get('timestamp', 0), reverse=True)
+    return jsonify({'entries': entries, 'limit': HISTORY_LIMIT})
+
+
+@app.route('/api/history', methods=['DELETE'])
+def clear_history():
+    with _history_lock:
+        try:
+            _write_history([])
+        except OSError as e:
+            logger.warning(f"Could not clear history at {HISTORY_FILE}: {e}")
+            return jsonify({'error': 'Could not clear history'}), 500
+    return jsonify({'cleared': True})
+
+
+@app.route('/api/history/<entry_id>', methods=['DELETE'])
+def delete_history_entry(entry_id):
+    with _history_lock:
+        entries = []
+        if HISTORY_FILE.exists():
+            try:
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        entries = loaded
+            except (OSError, json.JSONDecodeError):
+                entries = []
+        kept = [e for e in entries if e.get('id') != entry_id]
+        removed = len(kept) != len(entries)
+        if removed:
+            try:
+                _write_history(kept)
+            except OSError as e:
+                logger.warning(f"Could not write history to {HISTORY_FILE}: {e}")
+                return jsonify({'error': 'Could not update history'}), 500
+    return jsonify({'removed': removed})
 
 
 @app.route('/api/download', methods=['POST'])
