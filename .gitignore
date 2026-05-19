@@ -1,0 +1,13 @@
+# Runtime data (user-generated, not seeded)
+data/history.json
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
