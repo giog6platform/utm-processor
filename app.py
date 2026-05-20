@@ -1,7 +1,7 @@
 """
-UTM Agent Web App
-Simple Flask app to process HTML with UTM parameters
-Deployable on Vercel or Render
+UTM Genius Web App
+A G6 Platform tool. Flask app that rewrites HTML href links with UTM tracking parameters.
+Deployable on Vercel or Render.
 """
 
 from flask import Flask, render_template, request, jsonify, send_file

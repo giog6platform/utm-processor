@@ -3,30 +3,38 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UTM Agent — Campaign Link Builder</title>
+    <title>UTM Genius — Campaign Link Builder</title>
+    <link rel="icon" type="image/svg+xml" href="/static/g6-logo.svg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ink: #1a1410;
-            --ink-2: #2a2018;
-            --red: #b91c1c;
-            --red-dark: #8a1212;
-            --flame: #ea580c;
-            --flame-soft: #f59e0b;
-            --cream: #faf6ee;
-            --cream-2: #f1ebde;
+            --ink: #0a0a0a;
+            --ink-2: #1a1a1a;
+            --ink-3: #2a2a2a;
+            --gold: #e8a02a;
+            --gold-light: #f5c252;
+            --gold-deep: #b87a14;
+            --cream: #f1e5c8;
+            --cream-2: #faecc8;
+            --cream-3: #fef3da;
+            --bg: #fef9ee;
+            --bg-2: #fbe6c4;
             --surface: #ffffff;
-            --text: #1f1611;
-            --text-muted: #6b6357;
-            --border: #e7ddc8;
-            --border-strong: #d6c9af;
+            --text: #0a0a0a;
+            --text-muted: #6b5f4a;
+            --border: #ecdcb8;
+            --border-strong: #d4bf8d;
             --success: #15803d;
             --success-bg: #ecfdf5;
             --danger-bg: #fef2f2;
             --danger-text: #991b1b;
-            --shadow-lg: 0 24px 60px -20px rgba(26, 20, 16, 0.45);
-            --shadow-md: 0 10px 24px -12px rgba(26, 20, 16, 0.25);
+            --shadow-lg: 0 24px 60px -20px rgba(10, 10, 10, 0.4);
+            --shadow-md: 0 10px 24px -12px rgba(10, 10, 10, 0.22);
             --radius: 10px;
             --radius-lg: 14px;
+            --font-serif: 'Cormorant Garamond', 'Playfair Display', Georgia, 'Times New Roman', serif;
         }
 
         * {
@@ -38,9 +46,9 @@
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
             background:
-                radial-gradient(1200px 600px at 10% -10%, rgba(234, 88, 12, 0.12), transparent 60%),
-                radial-gradient(1000px 500px at 110% 110%, rgba(185, 28, 28, 0.10), transparent 60%),
-                var(--cream);
+                radial-gradient(900px 500px at 50% -8%, rgba(232, 160, 42, 0.22), transparent 60%),
+                radial-gradient(1100px 600px at 100% 110%, rgba(232, 160, 42, 0.16), transparent 60%),
+                linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
             min-height: 100vh;
             padding: 32px 20px;
             color: var(--text);
@@ -58,16 +66,25 @@
 
         .header {
             background:
-                radial-gradient(600px 200px at 80% 0%, rgba(234, 88, 12, 0.35), transparent 60%),
-                linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 55%, var(--red-dark) 100%);
-            color: #fff8ec;
-            padding: 36px 28px;
+                radial-gradient(500px 220px at 18% 0%, rgba(232, 160, 42, 0.18), transparent 60%),
+                linear-gradient(135deg, var(--ink) 0%, var(--ink-2) 100%);
+            color: var(--cream);
+            padding: 34px 28px;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 18px;
             position: relative;
             overflow: hidden;
+        }
+
+        .header::after {
+            content: "";
+            position: absolute;
+            inset: auto 0 0 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
+            opacity: 0.6;
         }
 
         .header-left {
@@ -116,7 +133,7 @@
             height: 18px;
             padding: 0 5px;
             border-radius: 999px;
-            background: linear-gradient(135deg, var(--flame) 0%, var(--flame-soft) 100%);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
             color: var(--ink);
             font-size: 11px;
             font-weight: 700;
@@ -127,41 +144,34 @@
             display: none;
         }
 
-        .header::after {
-            content: "";
-            position: absolute;
-            inset: auto 0 0 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--red) 0%, var(--flame) 60%, var(--flame-soft) 100%);
-        }
-
         .agent-icon {
-            width: 52px;
-            height: 52px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, var(--red) 0%, var(--flame) 100%);
+            width: 64px;
+            height: 64px;
             display: grid;
             place-items: center;
-            box-shadow: 0 12px 28px -10px rgba(234, 88, 12, 0.6), inset 0 0 0 1px rgba(255, 255, 255, 0.18);
             flex-shrink: 0;
         }
 
         .agent-icon svg {
-            width: 30px;
-            height: 30px;
-            color: #fff;
+            width: 64px;
+            height: 64px;
+            color: var(--gold);
+            filter: drop-shadow(0 4px 14px rgba(232, 160, 42, 0.35));
         }
 
         .header-text h1 {
-            font-size: 26px;
-            letter-spacing: -0.01em;
-            font-weight: 700;
+            font-family: var(--font-serif);
+            font-size: 30px;
+            letter-spacing: 0.01em;
+            font-weight: 600;
+            line-height: 1.1;
         }
 
         .header-text p {
             font-size: 13px;
-            opacity: 0.85;
-            margin-top: 2px;
+            opacity: 0.78;
+            margin-top: 4px;
+            letter-spacing: 0.02em;
         }
 
         .content {
@@ -199,7 +209,7 @@
             cursor: pointer;
             appearance: none;
             -webkit-appearance: none;
-            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b91c1c' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b87a14' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
             background-repeat: no-repeat;
             background-position: right 12px center;
             background-size: 14px;
@@ -209,8 +219,8 @@
         input[type="text"]:focus,
         select:focus {
             outline: none;
-            border-color: var(--red);
-            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.12);
+            border-color: var(--gold-deep);
+            box-shadow: 0 0 0 3px rgba(232, 160, 42, 0.16);
         }
 
         .file-upload {
@@ -227,7 +237,7 @@
         }
 
         .file-upload:hover {
-            border-color: var(--red);
+            border-color: var(--gold-deep);
             background: #fbf3e3;
         }
 
@@ -250,7 +260,7 @@
         }
 
         .file-upload-label strong {
-            color: var(--red);
+            color: var(--gold-deep);
         }
 
         .file-upload.has-file .file-upload-label {
@@ -317,9 +327,9 @@
         }
 
         .action-btn:hover {
-            color: var(--red);
-            border-color: var(--red);
-            background: #fff5f0;
+            color: var(--gold-deep);
+            border-color: var(--gold-deep);
+            background: #fbeed1;
         }
 
         .action-btn.remove-btn:hover {
@@ -363,7 +373,7 @@
         }
 
         .add-form .save-btn {
-            background: linear-gradient(135deg, var(--red) 0%, var(--flame) 100%);
+            background: linear-gradient(135deg, var(--gold-deep) 0%, var(--gold) 100%);
             color: #fff;
         }
 
@@ -412,14 +422,18 @@
         }
 
         .btn-process {
-            background: linear-gradient(135deg, var(--red) 0%, var(--flame) 100%);
-            color: #fff;
+            background: var(--ink);
+            color: var(--cream);
             box-shadow: var(--shadow-md);
+            border: 1px solid var(--ink);
+            position: relative;
         }
 
         .btn-process:hover {
+            background: var(--ink-2);
             transform: translateY(-1px);
-            box-shadow: 0 14px 28px -10px rgba(234, 88, 12, 0.5);
+            box-shadow: 0 14px 28px -10px rgba(10, 10, 10, 0.4);
+            border-color: var(--gold);
         }
 
         .btn-process:disabled {
@@ -429,9 +443,10 @@
         }
 
         .btn-download {
-            background: var(--ink);
-            color: var(--cream);
+            background: linear-gradient(135deg, var(--gold) 0%, var(--gold-light) 100%);
+            color: var(--ink);
             display: none;
+            border: 1px solid var(--gold-deep);
         }
 
         .btn-download.show {
@@ -441,8 +456,9 @@
         }
 
         .btn-download:hover {
-            background: var(--ink-2);
+            background: linear-gradient(135deg, var(--gold-light) 0%, var(--gold) 100%);
             transform: translateY(-1px);
+            box-shadow: 0 14px 28px -10px rgba(232, 160, 42, 0.45);
         }
 
         .result-section {
@@ -451,7 +467,7 @@
             padding: 22px;
             background: var(--cream-2);
             border-radius: var(--radius);
-            border-left: 4px solid var(--red);
+            border-left: 4px solid var(--gold-deep);
         }
 
         .result-section.show {
@@ -521,7 +537,7 @@
 
         .spinner {
             border: 3px solid var(--cream-2);
-            border-top: 3px solid var(--red);
+            border-top: 3px solid var(--gold-deep);
             border-radius: 50%;
             width: 28px;
             height: 28px;
@@ -536,7 +552,7 @@
 
         .info-box {
             background: linear-gradient(135deg, #fff8ec 0%, #fef3e2 100%);
-            border-left: 4px solid var(--flame);
+            border-left: 4px solid var(--gold);
             padding: 14px 16px;
             border-radius: var(--radius);
             font-size: 13px;
@@ -545,7 +561,7 @@
         }
 
         .info-box strong {
-            color: var(--red);
+            color: var(--gold-deep);
         }
 
         .drawer-backdrop {
@@ -630,8 +646,8 @@
         }
 
         .drawer-clear:hover {
-            background: rgba(185, 28, 28, 0.3);
-            border-color: rgba(185, 28, 28, 0.5);
+            background: rgba(184, 122, 20, 0.32);
+            border-color: rgba(184, 122, 20, 0.5);
         }
 
         .drawer-clear:disabled {
@@ -746,7 +762,7 @@
         }
 
         .history-tag-key {
-            color: var(--red);
+            color: var(--gold-deep);
             margin-right: 3px;
         }
 
@@ -784,9 +800,9 @@
         }
 
         .history-btn-sm:hover {
-            color: var(--red);
-            border-color: var(--red);
-            background: #fff5f0;
+            color: var(--gold-deep);
+            border-color: var(--gold-deep);
+            background: #fbeed1;
         }
 
         .history-btn-sm.copied {
@@ -813,20 +829,29 @@
         <div class="header">
             <div class="header-left">
                 <div class="agent-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="3" r="1" fill="currentColor"/>
-                        <path d="M12 4v2.5"/>
-                        <rect x="4.5" y="6.5" width="15" height="12.5" rx="3.25"/>
-                        <circle cx="9" cy="13" r="1.35" fill="currentColor"/>
-                        <circle cx="15" cy="13" r="1.35" fill="currentColor"/>
-                        <path d="M9.5 16.75h5"/>
-                        <path d="M3 12v3"/>
-                        <path d="M21 12v3"/>
+                    <svg viewBox="0 0 200 200" fill="none" stroke="currentColor" stroke-width="5" stroke-linejoin="miter" stroke-miterlimit="6">
+                        <polygon points="73,15 127,15 168,48 186,92 172,142 134,180 66,180 28,142 14,92 32,48"/>
+                        <polygon points="73,15 127,15 142,62 100,84 58,62"/>
+                        <polygon points="100,84 142,112 124,158 76,158 58,112"/>
+                        <line x1="127" y1="15" x2="168" y2="48"/>
+                        <line x1="142" y1="62" x2="168" y2="48"/>
+                        <line x1="142" y1="62" x2="186" y2="92"/>
+                        <line x1="142" y1="112" x2="186" y2="92"/>
+                        <line x1="142" y1="112" x2="172" y2="142"/>
+                        <line x1="124" y1="158" x2="172" y2="142"/>
+                        <line x1="124" y1="158" x2="134" y2="180"/>
+                        <line x1="73" y1="15" x2="32" y2="48"/>
+                        <line x1="58" y1="62" x2="32" y2="48"/>
+                        <line x1="58" y1="62" x2="14" y2="92"/>
+                        <line x1="58" y1="112" x2="14" y2="92"/>
+                        <line x1="58" y1="112" x2="28" y2="142"/>
+                        <line x1="76" y1="158" x2="28" y2="142"/>
+                        <line x1="76" y1="158" x2="66" y2="180"/>
                     </svg>
                 </div>
                 <div class="header-text">
-                    <h1>UTM Agent</h1>
-                    <p>Tag every campaign link in one shot</p>
+                    <h1>UTM Genius</h1>
+                    <p>A G6 Platform tool — tag every campaign link in one shot</p>
                 </div>
             </div>
             <button type="button" class="history-btn" id="historyBtn" aria-label="Open session history" aria-expanded="false" aria-controls="historyDrawer">

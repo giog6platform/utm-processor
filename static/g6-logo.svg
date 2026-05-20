@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 520" role="img" aria-label="G6 Platform">
+  <rect width="400" height="520" fill="#000000"/>
+  <g transform="translate(100,40)" fill="none" stroke="#e8a02a" stroke-width="5" stroke-linejoin="miter" stroke-miterlimit="6">
+    <polygon points="73,15 127,15 168,48 186,92 172,142 134,180 66,180 28,142 14,92 32,48"/>
+    <polygon points="73,15 127,15 142,62 100,84 58,62"/>
+    <polygon points="100,84 142,112 124,158 76,158 58,112"/>
+    <line x1="127" y1="15" x2="168" y2="48"/>
+    <line x1="142" y1="62" x2="168" y2="48"/>
+    <line x1="142" y1="62" x2="186" y2="92"/>
+    <line x1="142" y1="112" x2="186" y2="92"/>
+    <line x1="142" y1="112" x2="172" y2="142"/>
+    <line x1="124" y1="158" x2="172" y2="142"/>
+    <line x1="124" y1="158" x2="134" y2="180"/>
+    <line x1="73" y1="15" x2="32" y2="48"/>
+    <line x1="58" y1="62" x2="32" y2="48"/>
+    <line x1="58" y1="62" x2="14" y2="92"/>
+    <line x1="58" y1="112" x2="14" y2="92"/>
+    <line x1="58" y1="112" x2="28" y2="142"/>
+    <line x1="76" y1="158" x2="28" y2="142"/>
+    <line x1="76" y1="158" x2="66" y2="180"/>
+  </g>
+  <g transform="translate(200,360)" text-anchor="middle" fill="#f1e5c8" font-family="'Cormorant Garamond', 'Playfair Display', Georgia, serif">
+    <line x1="-110" y1="22" x2="-50" y2="22" stroke="#f1e5c8" stroke-width="1.5"/>
+    <line x1="50" y1="22" x2="110" y2="22" stroke="#f1e5c8" stroke-width="1.5"/>
+    <text y="44" font-size="72" font-weight="600" letter-spacing="2">G6</text>
+    <text y="108" font-size="34" font-weight="500" letter-spacing="8">PLATFORM</text>
+  </g>
+</svg>
