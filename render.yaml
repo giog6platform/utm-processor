@@ -8,3 +8,7 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: 3.11
+      # Set this in the Render dashboard (Environment tab) to the Neon
+      # connection string so options + history persist across respins.
+      - key: DATABASE_URL
+        sync: false
