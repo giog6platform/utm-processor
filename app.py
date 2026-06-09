@@ -33,8 +33,54 @@ DEFAULT_HISTORY_FILE = Path(__file__).resolve().parent / "data" / "history.json"
 HISTORY_FILE = Path(os.environ.get("UTM_HISTORY_PATH", str(DEFAULT_HISTORY_FILE)))
 HISTORY_LIMIT = 500
 
+# When DATABASE_URL is set (e.g. on Render) options + history persist in
+# Postgres, which survives respins/redeploys. Without it the app falls back to
+# the local JSON files so local dev keeps working with zero setup.
+DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
+USE_DB = bool(DATABASE_URL)
+
 _options_lock = threading.Lock()
 _history_lock = threading.Lock()
+
+
+# ── Postgres backend ──────────────────────────────────────────────────────────
+
+def _db_conn():
+    import psycopg
+    return psycopg.connect(DATABASE_URL)
+
+
+def _db_init():
+    """Create tables if missing and seed options from the bundled file once."""
+    with _db_conn() as conn, conn.cursor() as cur:
+        cur.execute(
+            "CREATE TABLE IF NOT EXISTS utm_options ("
+            "field TEXT NOT NULL, value TEXT NOT NULL, "
+            "created_at TIMESTAMPTZ NOT NULL DEFAULT now(), "
+            "PRIMARY KEY (field, value));"
+        )
+        cur.execute(
+            "CREATE TABLE IF NOT EXISTS utm_history ("
+            "id TEXT PRIMARY KEY, timestamp BIGINT NOT NULL, base_url TEXT, "
+            "utm_params JSONB, utm_url TEXT, links_found INTEGER, filename TEXT, "
+            "created_at TIMESTAMPTZ NOT NULL DEFAULT now());"
+        )
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_utm_history_ts "
+            "ON utm_history (timestamp DESC);"
+        )
+        cur.execute("SELECT count(*) FROM utm_options;")
+        if cur.fetchone()[0] == 0:
+            seed = _seed_options()
+            for field, vals in seed.items():
+                for v in vals:
+                    cur.execute(
+                        "INSERT INTO utm_options (field, value) VALUES (%s, %s) "
+                        "ON CONFLICT DO NOTHING;",
+                        (field, v),
+                    )
+            logger.info("Seeded utm_options from bundled options.json")
+        conn.commit()
 
 
 def _seed_options():
@@ -43,7 +89,16 @@ def _seed_options():
         return json.load(f)
 
 
+# ── Options ───────────────────────────────────────────────────────────────────
+
 def load_options():
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute("SELECT field, value FROM utm_options ORDER BY value;")
+            out = {f: [] for f in VALID_FIELDS}
+            for field, value in cur.fetchall():
+                out.setdefault(field, []).append(value)
+            return out
     with _options_lock:
         if not DATA_FILE.exists():
             data = _seed_options()
@@ -58,16 +113,88 @@ def load_options():
             return json.load(f)
 
 
-def save_options(data):
+def add_option_value(field, value):
+    """Add one option. Returns the updated list for the field and whether it was new."""
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO utm_options (field, value) VALUES (%s, %s) "
+                "ON CONFLICT DO NOTHING;",
+                (field, value),
+            )
+            added = cur.rowcount > 0
+            conn.commit()
+            cur.execute(
+                "SELECT value FROM utm_options WHERE field = %s ORDER BY value;",
+                (field,),
+            )
+            return [r[0] for r in cur.fetchall()], added
     with _options_lock:
-        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
-        tmp = DATA_FILE.with_suffix(DATA_FILE.suffix + ".tmp")
-        with open(tmp, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2)
-        os.replace(tmp, DATA_FILE)
+        options = _load_options_file()
+        field_options = options.get(field, [])
+        added = value not in field_options
+        if added:
+            field_options.append(value)
+            options[field] = field_options
+            _save_options_file(options)
+        return field_options, added
 
+
+def remove_option_value(field, value):
+    """Remove one option. Returns the updated list for the field and whether it existed."""
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                "DELETE FROM utm_options WHERE field = %s AND value = %s;",
+                (field, value),
+            )
+            removed = cur.rowcount > 0
+            conn.commit()
+            cur.execute(
+                "SELECT value FROM utm_options WHERE field = %s ORDER BY value;",
+                (field,),
+            )
+            return [r[0] for r in cur.fetchall()], removed
+    with _options_lock:
+        options = _load_options_file()
+        field_options = options.get(field, [])
+        removed = value in field_options
+        if removed:
+            field_options = [v for v in field_options if v != value]
+            options[field] = field_options
+            _save_options_file(options)
+        return field_options, removed
+
+
+def _load_options_file():
+    if not DATA_FILE.exists():
+        return _seed_options()
+    with open(DATA_FILE, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def _save_options_file(data):
+    DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+    tmp = DATA_FILE.with_suffix(DATA_FILE.suffix + ".tmp")
+    with open(tmp, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+    os.replace(tmp, DATA_FILE)
+
+
+# ── History ───────────────────────────────────────────────────────────────────
 
 def load_history():
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                "SELECT id, timestamp, base_url, utm_params, utm_url, "
+                "links_found, filename FROM utm_history "
+                "ORDER BY timestamp DESC LIMIT %s;",
+                (HISTORY_LIMIT,),
+            )
+            cols = ("id", "timestamp", "base_url", "utm_params", "utm_url",
+                    "links_found", "filename")
+            return [dict(zip(cols, row)) for row in cur.fetchall()]
     with _history_lock:
         if not HISTORY_FILE.exists():
             return []
@@ -89,6 +216,23 @@ def _write_history(entries):
 
 
 def append_history(entry):
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute(
+                "INSERT INTO utm_history "
+                "(id, timestamp, base_url, utm_params, utm_url, links_found, filename) "
+                "VALUES (%s, %s, %s, %s, %s, %s, %s) ON CONFLICT (id) DO NOTHING;",
+                (entry["id"], entry["timestamp"], entry["base_url"],
+                 json.dumps(entry["utm_params"]), entry["utm_url"],
+                 entry["links_found"], entry["filename"]),
+            )
+            cur.execute(
+                "DELETE FROM utm_history WHERE id IN ("
+                "SELECT id FROM utm_history ORDER BY timestamp DESC OFFSET %s);",
+                (HISTORY_LIMIT,),
+            )
+            conn.commit()
+        return
     with _history_lock:
         try:
             entries = []
@@ -103,6 +247,40 @@ def append_history(entry):
             _write_history(entries)
         except OSError as e:
             logger.warning(f"Could not write history to {HISTORY_FILE}: {e}")
+
+
+def clear_history():
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute("DELETE FROM utm_history;")
+            conn.commit()
+        return
+    with _history_lock:
+        _write_history([])
+
+
+def delete_history_entry_by_id(entry_id):
+    if USE_DB:
+        with _db_conn() as conn, conn.cursor() as cur:
+            cur.execute("DELETE FROM utm_history WHERE id = %s;", (entry_id,))
+            removed = cur.rowcount > 0
+            conn.commit()
+            return removed
+    with _history_lock:
+        entries = []
+        if HISTORY_FILE.exists():
+            try:
+                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                    loaded = json.load(f)
+                    if isinstance(loaded, list):
+                        entries = loaded
+            except (OSError, json.JSONDecodeError):
+                entries = []
+        kept = [e for e in entries if e.get("id") != entry_id]
+        removed = len(kept) != len(entries)
+        if removed:
+            _write_history(kept)
+        return removed
 
 
 def build_utm_url(base_url, utm_params):
@@ -165,13 +343,8 @@ def add_option(field):
     if not VALUE_PATTERN.match(value):
         return jsonify({'error': 'Use letters, digits, underscores, hyphens, dots, or spaces only'}), 400
 
-    options = load_options()
-    field_options = options.get(field, [])
-    added = value not in field_options
+    field_options, added = add_option_value(field, value)
     if added:
-        field_options.append(value)
-        options[field] = field_options
-        save_options(options)
         logger.info(f"Added option to {field}: {value}")
 
     return jsonify({'options': field_options, 'added': added})
@@ -188,13 +361,8 @@ def delete_option(field):
     if not value:
         return jsonify({'error': 'Value is required'}), 400
 
-    options = load_options()
-    field_options = options.get(field, [])
-    removed = value in field_options
+    field_options, removed = remove_option_value(field, value)
     if removed:
-        field_options = [v for v in field_options if v != value]
-        options[field] = field_options
-        save_options(options)
         logger.info(f"Removed option from {field}: {value}")
 
     return jsonify({'options': field_options, 'removed': removed})
@@ -262,36 +430,22 @@ def get_history():
 
 
 @app.route('/api/history', methods=['DELETE'])
-def clear_history():
-    with _history_lock:
-        try:
-            _write_history([])
-        except OSError as e:
-            logger.warning(f"Could not clear history at {HISTORY_FILE}: {e}")
-            return jsonify({'error': 'Could not clear history'}), 500
+def clear_history_route():
+    try:
+        clear_history()
+    except Exception as e:
+        logger.warning(f"Could not clear history: {e}")
+        return jsonify({'error': 'Could not clear history'}), 500
     return jsonify({'cleared': True})
 
 
 @app.route('/api/history/<entry_id>', methods=['DELETE'])
 def delete_history_entry(entry_id):
-    with _history_lock:
-        entries = []
-        if HISTORY_FILE.exists():
-            try:
-                with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                    loaded = json.load(f)
-                    if isinstance(loaded, list):
-                        entries = loaded
-            except (OSError, json.JSONDecodeError):
-                entries = []
-        kept = [e for e in entries if e.get('id') != entry_id]
-        removed = len(kept) != len(entries)
-        if removed:
-            try:
-                _write_history(kept)
-            except OSError as e:
-                logger.warning(f"Could not write history to {HISTORY_FILE}: {e}")
-                return jsonify({'error': 'Could not update history'}), 500
+    try:
+        removed = delete_history_entry_by_id(entry_id)
+    except Exception as e:
+        logger.warning(f"Could not update history: {e}")
+        return jsonify({'error': 'Could not update history'}), 500
     return jsonify({'removed': removed})
 
 
@@ -325,6 +479,17 @@ def download_file():
 def health():
     """Health check for Vercel."""
     return jsonify({'status': 'ok'})
+
+
+# Initialize the database on import (runs under gunicorn too, not just __main__).
+if USE_DB:
+    try:
+        _db_init()
+        logger.info("UTM Genius using Postgres backend (DATABASE_URL set).")
+    except Exception as e:
+        logger.error(f"Database init failed, check DATABASE_URL: {e}")
+else:
+    logger.info("UTM Genius using local JSON files (no DATABASE_URL set).")
 
 
 if __name__ == '__main__':
