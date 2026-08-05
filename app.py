@@ -39,6 +39,17 @@ HISTORY_LIMIT = 500
 DATABASE_URL = os.environ.get("DATABASE_URL", "").strip()
 USE_DB = bool(DATABASE_URL)
 
+# True only once Postgres is confirmed reachable (set by the init block at the
+# bottom of this file). While it is False, history lives in a container-local
+# JSON file that ANY redeploy erases.
+#
+# This is surfaced through /health and /api/history because the fallback is
+# indistinguishable from working persistence in the UI: entries save, reload,
+# and look durable right up until the next deploy. History was lost that way on
+# 2026-08-05 after running unpersisted since roughly 2026-06-09. Failing loudly
+# is the point.
+DB_READY = False
+
 _options_lock = threading.Lock()
 _history_lock = threading.Lock()
 
@@ -426,7 +437,13 @@ def process_html():
 def get_history():
     entries = load_history()
     entries = sorted(entries, key=lambda e: e.get('timestamp', 0), reverse=True)
-    return jsonify({'entries': entries, 'limit': HISTORY_LIMIT})
+    # `persistent: false` drives the warning banner in the history drawer, so
+    # nobody trusts a list that the next deploy will silently erase.
+    return jsonify({
+        'entries': entries,
+        'limit': HISTORY_LIMIT,
+        'persistent': DB_READY,
+    })
 
 
 @app.route('/api/history', methods=['DELETE'])
@@ -477,19 +494,31 @@ def download_file():
 
 @app.route('/health')
 def health():
-    """Health check for Vercel."""
-    return jsonify({'status': 'ok'})
+    """Health check, plus whether history is actually durable on this instance."""
+    return jsonify({
+        'status': 'ok',
+        'storage': 'postgres' if DB_READY else 'ephemeral-file',
+        'history_persistent': DB_READY,
+    })
 
 
 # Initialize the database on import (runs under gunicorn too, not just __main__).
 if USE_DB:
     try:
         _db_init()
+        DB_READY = True
         logger.info("UTM Genius using Postgres backend (DATABASE_URL set).")
     except Exception as e:
-        logger.error(f"Database init failed, check DATABASE_URL: {e}")
+        logger.error(
+            "DATABASE_URL is set but Postgres init FAILED, so history is NOT "
+            f"persistent and will be lost on the next deploy: {e}"
+        )
 else:
-    logger.info("UTM Genius using local JSON files (no DATABASE_URL set).")
+    logger.warning(
+        "UTM Genius has no DATABASE_URL, so options and history live in a "
+        "container-local JSON file. On an ephemeral host (Render) EVERY deploy "
+        "erases history. Set DATABASE_URL to make it durable."
+    )
 
 
 if __name__ == '__main__':
