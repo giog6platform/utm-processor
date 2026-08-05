@@ -687,6 +687,21 @@
             font-size: 13px;
             padding: 40px 16px;
         }
+        .history-warning {
+            margin: 0 0 12px;
+            padding: 10px 12px;
+            border: 1px solid rgba(210, 63, 55, 0.45);
+            border-left-width: 3px;
+            border-radius: 6px;
+            background: rgba(210, 63, 55, 0.09);
+            color: #e8837c;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+        .history-warning code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+            font-size: 11px;
+        }
 
         .history-entry {
             background: var(--surface);
@@ -1299,6 +1314,8 @@
         }
 
         let historyEntries = [];
+        // null until the first fetch, so the warning never flashes before we know.
+        let historyPersistent = null;
         const drawer = document.getElementById('historyDrawer');
         const drawerBackdrop = document.getElementById('drawerBackdrop');
         const historyList = document.getElementById('historyList');
@@ -1339,11 +1356,17 @@
         }
 
         function renderHistory() {
+            // Shown whenever the server reports it is on the container-local
+            // file rather than Postgres, because that history does not survive
+            // a redeploy and otherwise looks completely normal.
+            const warning = historyPersistent === false
+                ? '<div class="history-warning">Not saved permanently. This instance has no database, so this list is erased on the next deploy. Set <code>DATABASE_URL</code> to fix.</div>'
+                : '';
             if (historyEntries.length === 0) {
-                historyList.innerHTML = '<div class="drawer-empty">No entries yet. Process an HTML file and it\'ll show up here.</div>';
+                historyList.innerHTML = warning + '<div class="drawer-empty">No entries yet. Process an HTML file and it\'ll show up here.</div>';
                 return;
             }
-            historyList.innerHTML = historyEntries.map((e) => {
+            historyList.innerHTML = warning + historyEntries.map((e) => {
                 const params = Object.entries(e.utm_params || {})
                     .filter(([, v]) => v)
                     .map(([k, v]) => `<span class="history-tag"><span class="history-tag-key">${escapeHtml(k.replace('utm_', ''))}=</span>${escapeHtml(v)}</span>`)
@@ -1374,6 +1397,7 @@
                 if (!res.ok) throw new Error('Failed to load history');
                 const data = await res.json();
                 historyEntries = data.entries || [];
+                historyPersistent = data.persistent !== false;
                 updateHistoryBadge();
                 renderHistory();
             } catch (err) {
