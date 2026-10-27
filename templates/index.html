@@ -1266,11 +1266,17 @@
                 if (data.utm_params.utm_term) paramsList.push(`term=${data.utm_params.utm_term}`);
                 if (data.utm_params.utm_content) paramsList.push(`content=${data.utm_params.utm_content}`);
 
+                if (data.cta_positions && data.cta_positions.length) {
+                    paramsList.push(`cta=${data.cta_positions.join(' / ')}`);
+                }
+
                 if (paramsList.length > 0) {
                     document.getElementById('utmParamsText').textContent = `UTM parameters: ${paramsList.join(', ')}`;
                 }
 
-                document.getElementById('sampleUrl').textContent = data.utm_url;
+                document.getElementById('sampleUrl').textContent = data.utm_url +
+                    (data.cta_positions && data.cta_positions.length
+                        ? `${data.utm_url.includes('?') ? '&' : '?'}utm_cta=top|middle|bottom` : '');
                 document.getElementById('resultSection').classList.add('show');
                 document.getElementById('downloadBtn').classList.add('show');
             } catch (error) {

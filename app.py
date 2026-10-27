@@ -307,14 +307,26 @@ def build_utm_url(base_url, utm_params):
     return f"{base_url}{separator}{query_string}"
 
 
+def cta_positions(link_count):
+    """utm_cta per link, in document order: first is top, last is bottom, the rest middle."""
+    if link_count <= 0:
+        return []
+    if link_count == 1:
+        return ["top"]
+    return ["top"] + ["middle"] * (link_count - 2) + ["bottom"]
+
+
 def inject_utm_in_html(html_content, utm_url):
-    """Replace all href links in HTML with UTM URL."""
+    """Replace every href with the UTM URL plus a utm_cta for its position in the creative."""
     if not html_content:
         return ""
 
+    positions = iter(cta_positions(count_links(html_content)))
+
     def replace_href(match):
         quote_char = match.group(1) or match.group(3) or ""
-        return f'href={quote_char}{utm_url}{quote_char}'
+        url = build_utm_url(utm_url, {"utm_cta": next(positions)})
+        return f'href={quote_char}{url}{quote_char}'
 
     pattern = r'href=(["\'])([^"\']*)["\']|href=([^\s>]*)'
 
@@ -425,6 +437,7 @@ def process_html():
             'links_found': link_count,
             'utm_url': utm_url,
             'utm_params': utm_params,
+            'cta_positions': cta_positions(link_count),
             'history_entry': entry,
         })
 
